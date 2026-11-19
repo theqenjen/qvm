@@ -4,30 +4,87 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#10131c">
-  <title>QVM Mobile</title>
+  <title>QVM Mobile · Browser x86</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
-      <div><p class="eyebrow">QVM · POCKET EDITION</p><h1>Mobile VM Emulator</h1></div>
+      <div><p class="eyebrow">QVM · POCKET EDITION</p><h1>Browser VM Emulator</h1></div>
       <span class="badge" id="status" role="status">READY</span>
     </header>
 
-    <section class="panel screen-panel" aria-labelledby="display-title">
-      <div class="panel-heading"><h2 id="display-title">Virtual display</h2><span>8 × 8 pixels</span></div>
-      <div id="display" class="display" role="img" aria-label="8 by 8 virtual pixel display"></div>
-      <div class="controls" aria-label="Emulator controls">
-        <button id="run">Run</button><button id="step" class="secondary">Step</button>
-        <button id="pause" class="secondary" disabled>Pause</button><button id="reset" class="secondary">Reset</button>
+    <section class="panel real-vm" aria-labelledby="real-vm-title">
+      <div class="panel-heading">
+        <div><p class="eyebrow">V86 · BROWSER X86</p><h2 id="real-vm-title">Boot an ISO or IMG</h2></div>
+        <span id="runtime-status">Loading runtime…</span>
       </div>
+
+      <div id="engine-error" class="vm-warning hidden"></div>
+      <p class="vm-intro">v86 emulates an x86 PC in JavaScript and WebAssembly. No server or native QEMU is required; images are read locally in this browser.</p>
+
+      <form id="vm-form">
+        <label class="upload-label" for="vm-image">Upload image <span>ISO or raw IMG</span></label>
+        <input id="vm-image" name="image" type="file" accept=".iso,.img,application/x-iso9660-image,application/octet-stream">
+
+        <label class="upload-label cdn-label" for="image-url">Or load an image URL <span>must allow CORS</span></label>
+        <div class="url-row">
+          <input id="image-url" type="url" inputmode="url" placeholder="https://cdn.example.com/system.img">
+          <select id="image-kind" aria-label="Image type">
+            <option value="hda">IMG disk</option>
+            <option value="cdrom">ISO CD-ROM</option>
+          </select>
+        </div>
+
+        <label class="memory-label" for="memory-size">Guest memory
+          <select id="memory-size">
+            <option value="67108864">64 MiB</option>
+            <option value="134217728" selected>128 MiB</option>
+            <option value="268435456">256 MiB</option>
+            <option value="536870912">512 MiB</option>
+          </select>
+        </label>
+
+        <div class="vm-controls">
+          <button id="vm-start" type="submit">Start VM</button>
+          <button id="vm-stop" type="button" class="secondary" disabled>Stop VM</button>
+          <button id="vm-reset" type="button" class="secondary" disabled>Reset</button>
+        </div>
+      </form>
+
+      <div class="vm-display-wrap">
+        <canvas id="vm-screen" width="640" height="480" aria-label="Virtual machine display"></canvas>
+        <div id="vm-placeholder" class="screen-placeholder">Choose an image to boot</div>
+      </div>
+
+      <div class="vm-toolbar">
+        <button id="send-cad" type="button" class="secondary" disabled>Ctrl+Alt+Del</button>
+        <button id="toggle-mouse" type="button" class="secondary" disabled>Capture mouse</button>
+      </div>
+
+      <div class="serial-row">
+        <pre id="serial-output" aria-label="Serial output"></pre>
+        <form id="serial-form">
+          <label class="sr-only" for="serial-input">Serial input</label>
+          <input id="serial-input" autocomplete="off" placeholder="Serial input">
+          <button type="submit" class="secondary">Send</button>
+        </form>
+      </div>
+
+      <p id="vm-message" class="vm-message" aria-live="polite">Supports BIOS-bootable x86 disk images and CDs. UEFI-only systems may not boot.</p>
+      <p class="vm-warning">Entire images can consume substantial browser memory. For large media, use a range-enabled CDN URL. Images remain in browser memory and are not uploaded.</p>
+    </section>
+
+    <section class="panel screen-panel" aria-labelledby="display-title">
+      <div class="panel-heading"><h2 id="display-title">QVM-8 virtual display</h2><span>8 × 8 pixels</span></div>
+      <div id="display" class="display" role="img" aria-label="8 by 8 virtual pixel display"></div>
+      <div class="controls"><button id="run">Run</button><button id="step" class="secondary">Step</button><button id="pause" class="secondary" disabled>Pause</button><button id="reset" class="secondary">Reset</button></div>
     </section>
 
     <section class="panel editor-panel" aria-labelledby="program-title">
-      <div class="panel-heading"><h2 id="program-title">Program</h2><span>QVM-8 assembly</span></div>
-      <label class="sr-only" for="source">VM assembly program</label>
-      <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="instruction-help"></textarea>
-      <p id="instruction-help" class="help">Edit the program, then tap Run. Labels end in a colon; operands are comma-separated.</p>
+      <div class="panel-heading"><h2 id="program-title">QVM-8 program</h2><span>Educational bytecode</span></div>
+      <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+      <p id="instruction-help" class="help">Edit the program, then tap Run.</p>
       <div id="message" class="message" aria-live="polite">Ready to load a program.</div>
     </section>
 
@@ -35,22 +92,15 @@
       <div class="panel-heading"><h2 id="state-title">Machine state</h2><span>8-bit registers</span></div>
       <div class="registers" id="registers"></div>
       <div class="memory-heading"><h3>Memory</h3><span>256 bytes</span></div>
-      <div id="memory" class="memory" aria-label="First 16 bytes of VM memory"></div>
+      <div id="memory" class="memory"></div>
     </section>
 
-    <section class="panel input-panel" aria-labelledby="input-title">
-      <div class="panel-heading"><h2 id="input-title">Touch input</h2><span>IN reads the next key</span></div>
-      <div class="keypad" aria-label="Virtual input keypad">
-        <button data-key="1" aria-label="Press virtual key 1">1</button>
-        <button data-key="2" aria-label="Press virtual key 2">2</button>
-        <button data-key="3" aria-label="Press virtual key 3">3</button>
-        <button data-key="0" aria-label="Press virtual key 0">0</button>
-      </div>
-      <div class="panel-heading output-heading"><h2>VM output</h2><button id="clear-output" class="text-button">Clear</button></div>
-      <pre id="output" class="output" aria-live="polite">QVM-8 ready.</pre>
-    </section>
-    <footer>QVM-8 is a small educational bytecode emulator. It runs locally in your browser.</footer>
+    <footer>v86 runs locally in supported modern browsers. QVM-8 is a separate small educational emulator.</footer>
   </main>
+
+  <!-- Replace this URL with a v86 release CDN and pin its version for production. -->
+  <script src="https://cdn.jsdelivr.net/npm/v86@latest/build/libv86.js"></script>
+  <script type="module" src="vm-v86.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

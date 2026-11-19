@@ -1,0 +1,9 @@
+{
+  "name": "qvm-mobile",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Static v86 browser VM emulator for GitHub Pages",
+  "scripts": {
+    "start": "python3 -m http.server 8080"
+  }
+}
