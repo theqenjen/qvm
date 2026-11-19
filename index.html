@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10131c">
+  <title>QVM Mobile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><p class="eyebrow">QVM · POCKET EDITION</p><h1>Mobile VM Emulator</h1></div>
+      <span class="badge" id="status" role="status">READY</span>
+    </header>
+
+    <section class="panel screen-panel" aria-labelledby="display-title">
+      <div class="panel-heading"><h2 id="display-title">Virtual display</h2><span>8 × 8 pixels</span></div>
+      <div id="display" class="display" role="img" aria-label="8 by 8 virtual pixel display"></div>
+      <div class="controls" aria-label="Emulator controls">
+        <button id="run">Run</button><button id="step" class="secondary">Step</button>
+        <button id="pause" class="secondary" disabled>Pause</button><button id="reset" class="secondary">Reset</button>
+      </div>
+    </section>
+
+    <section class="panel editor-panel" aria-labelledby="program-title">
+      <div class="panel-heading"><h2 id="program-title">Program</h2><span>QVM-8 assembly</span></div>
+      <label class="sr-only" for="source">VM assembly program</label>
+      <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="instruction-help"></textarea>
+      <p id="instruction-help" class="help">Edit the program, then tap Run. Labels end in a colon; operands are comma-separated.</p>
+      <div id="message" class="message" aria-live="polite">Ready to load a program.</div>
+    </section>
+
+    <section class="panel" aria-labelledby="state-title">
+      <div class="panel-heading"><h2 id="state-title">Machine state</h2><span>8-bit registers</span></div>
+      <div class="registers" id="registers"></div>
+      <div class="memory-heading"><h3>Memory</h3><span>256 bytes</span></div>
+      <div id="memory" class="memory" aria-label="First 16 bytes of VM memory"></div>
+    </section>
+
+    <section class="panel input-panel" aria-labelledby="input-title">
+      <div class="panel-heading"><h2 id="input-title">Touch input</h2><span>IN reads the next key</span></div>
+      <div class="keypad" aria-label="Virtual input keypad">
+        <button data-key="1" aria-label="Press virtual key 1">1</button>
+        <button data-key="2" aria-label="Press virtual key 2">2</button>
+        <button data-key="3" aria-label="Press virtual key 3">3</button>
+        <button data-key="0" aria-label="Press virtual key 0">0</button>
+      </div>
+      <div class="panel-heading output-heading"><h2>VM output</h2><button id="clear-output" class="text-button">Clear</button></div>
+      <pre id="output" class="output" aria-live="polite">QVM-8 ready.</pre>
+    </section>
+    <footer>QVM-8 is a small educational bytecode emulator. It runs locally in your browser.</footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
